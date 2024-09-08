@@ -13,3 +13,5 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log('port is running:', port);
 })
+
+const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@express-explore.use1c.mongodb.net/?retryWrites=true&w=majority&appName=express-explore`;
