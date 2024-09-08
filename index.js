@@ -23,3 +23,16 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+
+async function run() {
+    try {
+        await client.connect();
+        
+
+
+    } finally {
+        
+    }
+}
+run().catch(console.dir);
