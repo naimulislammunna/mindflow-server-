@@ -1,6 +1,9 @@
+require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const port = process.env.port || 7000;
+
 
 const app = express();
 app.use(cors());
@@ -28,11 +31,24 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         await client.connect();
-        
+        const postCollection = client.db('mindflow').collection('post');
+
+        app.post('/post', async (req, res) => {
+            const query = req.body;
+
+            const result = await postCollection.insertOne(query);
+            res.send(result);
+        })
+
+        app.get('/post', async(req, res) => {
+            const cursor = await postCollection.find().toArray();
+            res.send(cursor);
+        })
+
 
 
     } finally {
-        
+
     }
 }
 run().catch(console.dir);
