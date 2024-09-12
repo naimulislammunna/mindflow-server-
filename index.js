@@ -32,17 +32,31 @@ async function run() {
     try {
         await client.connect();
         const postCollection = client.db('mindflow').collection('post');
+        const usersCollection = client.db('mindflow').collection('users');
 
-        app.post('/post', async (req, res) => {
+        // Post add and get
+        app.post('/add-post', async (req, res) => {
             const query = req.body;
-
             const result = await postCollection.insertOne(query);
             res.send(result);
         })
-
         app.get('/post', async(req, res) => {
             const cursor = await postCollection.find().toArray();
             res.send(cursor);
+        })
+
+        // User Add and get 
+        app.post('/add-users', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            
+            const quary = {email : user.email}
+            const existUser = await usersCollection.findOne(quary);
+            if(existUser){
+               return res.send({message: 'user already in use', insertedId: null})
+            }
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
         })
 
 
