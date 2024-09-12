@@ -40,26 +40,41 @@ async function run() {
             const result = await postCollection.insertOne(query);
             res.send(result);
         })
-        app.get('/post', async(req, res) => {
+        app.get('/post', async (req, res) => {
             const cursor = await postCollection.find().toArray();
             res.send(cursor);
         })
 
-        // User Add and get 
+        // User (Add, get, Delete and update role)
         app.post('/add-users', async (req, res) => {
             const user = req.body;
-            console.log(user);
-            
-            const quary = {email : user.email}
+            const quary = { email: user.email }
             const existUser = await usersCollection.findOne(quary);
-            if(existUser){
-               return res.send({message: 'user already in use', insertedId: null})
+            if (existUser) {
+                return res.send({ message: 'user already in use', insertedId: null })
             }
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
-        app.get('/users', async(req, res) =>{
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
+            res.send(result);
+        })
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await usersCollection.deleteOne(query);
+            res.send(result);
+        })
+        app.patch('/users/admin/:id', (req, res) => {
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const updateUser = {
+                $set:{
+                    role: "admin"
+                }
+            }
+            const result = usersCollection.updateOne(filter, updateUser);
             res.send(result);
         })
 
