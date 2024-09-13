@@ -1,4 +1,5 @@
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
@@ -56,7 +57,23 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
-        app.get('/users', async (req, res) => {
+        const verifyToken = (req, res, next) => {
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'forbidden access' })
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if(err){
+                    return res.status(401).send({ message: 'forbidden access' })
+                }
+                req.decoded = decoded;
+                next()
+            })
+            
+        }
+        app.get('/users', verifyToken, async (req, res) => {
+            console.log(req.headers);
+
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
@@ -66,16 +83,21 @@ async function run() {
             const result = await usersCollection.deleteOne(query);
             res.send(result);
         })
-        app.patch('/users/admin/:id', (req, res) => {
+        app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)};
+            const filter = { _id: new ObjectId(id) };
             const updateUser = {
-                $set:{
+                $set: {
                     role: "admin"
                 }
             }
-            const result = usersCollection.updateOne(filter, updateUser);
+            const result = await usersCollection.updateOne(filter, updateUser);
             res.send(result);
+        })
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ token })
         })
 
 
