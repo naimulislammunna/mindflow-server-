@@ -45,6 +45,46 @@ async function run() {
             const cursor = await postCollection.find().toArray();
             res.send(cursor);
         })
+        app.get('/post/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const cursor = await postCollection.findOne(query)
+            res.send(cursor);
+        })
+        app.get('/my-post', async (req, res) => {
+            const email = req.query.email;
+            console.log("getee", email);
+            
+            let query = {};
+            if (req.query?.email) {
+                query = {email: email}
+            }
+            
+            const cursor = await postCollection.find(query).toArray();
+            res.send(cursor);
+        })
+        app.delete('/post/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await postCollection.deleteOne(query);
+            res.send(result);
+        })
+        app.patch('/up-vote/:id', async (req, res) => {
+            const id = req.params.id;
+            const body = req.body;
+            const query = { _id: new ObjectId(id) }
+            const cursor = await postCollection.findOne(query)
+            const vote = cursor.upVote + 1;
+            
+            const update = {
+                $set: {
+                    upVote: vote
+                }
+            }
+            const result = await postCollection.updateOne(query, update);
+            res.send(result);
+        })
+
 
         // User (Add, get, Delete and update role)
         app.post('/add-users', async (req, res) => {
@@ -72,8 +112,6 @@ async function run() {
             
         }
         app.get('/users', verifyToken, async (req, res) => {
-            console.log(req.headers);
-
             const result = await usersCollection.find().toArray();
             res.send(result);
         })
