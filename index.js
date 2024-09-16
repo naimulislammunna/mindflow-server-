@@ -71,7 +71,6 @@ async function run() {
         })
         app.patch('/up-vote/:id', async (req, res) => {
             const id = req.params.id;
-            const body = req.body;
             const query = { _id: new ObjectId(id) }
             const cursor = await postCollection.findOne(query)
             const vote = cursor.upVote + 1;
@@ -79,6 +78,38 @@ async function run() {
             const update = {
                 $set: {
                     upVote: vote
+                }
+            }
+            const result = await postCollection.updateOne(query, update);
+            res.send(result);
+        })
+        app.patch('/dwon-vote/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const cursor = await postCollection.findOne(query)
+            const vote = cursor.dwonVote + 1;
+            
+            const update = {
+                $set: {
+                    dwonVote: vote
+                }
+            }
+            const result = await postCollection.updateOne(query, update);
+            res.send(result);
+        })
+        app.patch('/comment/:id', async (req, res) => {
+            const id = req.params.id;
+            const body = req.body;
+            console.log('body', body);
+            
+            const query = { _id: new ObjectId(id) }
+            const cursor = await postCollection.findOne(query)
+            let postComment = cursor.comment;
+            postComment.push(body.comment)
+            
+            const update = {
+                $set: {
+                    comment: postComment
                 }
             }
             const result = await postCollection.updateOne(query, update);
@@ -97,6 +128,7 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
+
         const verifyToken = (req, res, next) => {
             if (!req.headers.authorization) {
                 return res.status(401).send({ message: 'forbidden access' })
@@ -108,19 +140,29 @@ async function run() {
                 }
                 req.decoded = decoded;
                 next()
-            })
-            
+            })           
         }
-        app.get('/users', verifyToken, async (req, res) => {
+
+        app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result);
+            console.log('pouser', result);
+            
         })
-        app.delete('/users/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-            const result = await usersCollection.deleteOne(query);
-            res.send(result);
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log("admiem",email);
+            
+            const filter = {email: email};
+            const user = await usersCollection.findOne(filter);
+            let admin = false
+            if(user){
+                admin = user?.role === "admin"
+            }
+            res.send({admin});
         })
+        
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
