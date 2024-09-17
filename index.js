@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
-const port = process.env.port || 7000;
+const port = process.env.port || 5000;
 
 
 const app = express();
@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('client server ok')
+    res.send('mindflow server is ok')
 })
 
 app.listen(port, () => {
@@ -31,7 +31,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
+        
         const postCollection = client.db('mindflow').collection('post');
         const usersCollection = client.db('mindflow').collection('users');
 
@@ -129,19 +129,19 @@ async function run() {
             res.send(result);
         })
 
-        const verifyToken = (req, res, next) => {
-            if (!req.headers.authorization) {
-                return res.status(401).send({ message: 'forbidden access' })
-            }
-            const token = req.headers.authorization.split(' ')[1];
-            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-                if(err){
-                    return res.status(401).send({ message: 'forbidden access' })
-                }
-                req.decoded = decoded;
-                next()
-            })           
-        }
+        // const verifyToken = (req, res, next) => {
+        //     if (!req.headers.authorization) {
+        //         return res.status(401).send({ message: 'forbidden access' })
+        //     }
+        //     const token = req.headers.authorization.split(' ')[1];
+        //     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        //         if(err){
+        //             return res.status(401).send({ message: 'forbidden access' })
+        //         }
+        //         req.decoded = decoded;
+        //         next()
+        //     })           
+        // }
 
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
@@ -174,11 +174,11 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateUser);
             res.send(result);
         })
-        app.post('/jwt', async (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            res.send({ token })
-        })
+        // app.post('/jwt', async (req, res) => {
+        //     const user = req.body;
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+        //     res.send({ token })
+        // })
 
 
 
